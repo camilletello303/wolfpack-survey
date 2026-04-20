@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Wolfpack NJTC — Availability Survey</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#2d6a4f;--gbg:#d8f3dc;--gtext:#1b4332;
+  --red:#991b1b;--rbg:#fee2e2;--rtext:#7f1d1d;
+  --blue:#1a4d8c;--bbg:#dbeafe;
+  --bg:#f7f6f2;--surface:#fff;
+  --text:#1a1a1a;--t2:#555;--t3:#999;
+  --border:rgba(0,0,0,0.1);
+  --r:12px;--rs:8px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0;margin:0}
+.hero{background:var(--text);color:#fff;padding:2rem 1.5rem 1.5rem;text-align:center}
+.hero-logo{font-size:32px;margin-bottom:8px}
+.hero-title{font-size:22px;font-weight:600;letter-spacing:-.3px}
+.hero-sub{font-size:13px;opacity:.7;margin-top:4px}
+.container{max-width:480px;margin:0 auto;padding:1.25rem 1rem 3rem}
+.greeting{font-size:18px;font-weight:600;margin:1.25rem 0 .25rem;text-align:center}
+.instructions{font-size:13px;color:var(--t2);text-align:center;margin-bottom:1.5rem;line-height:1.6}
+.date-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.date-card.selected-yes{border-color:var(--green);background:var(--gbg)}
+.date-card.selected-no{border-color:var(--red);background:var(--rbg)}
+.date-info{flex:1}
+.date-main{font-size:15px;font-weight:600}
+.date-sub{font-size:12px;color:var(--t2);margin-top:2px}
+.date-card.selected-yes .date-main{color:var(--gtext)}
+.date-card.selected-no .date-main{color:var(--rtext)}
+.toggle-wrap{display:flex;gap:6px;flex-shrink:0}
+.tog{padding:8px 14px;font-size:13px;font-weight:600;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.tog-yes.active{background:var(--green);color:#fff;border-color:var(--green)}
+.tog-no.active{background:var(--red);color:#fff;border-color:var(--red)}
+.tog-yes:not(.active):hover{background:var(--gbg);border-color:var(--green);color:var(--gtext)}
+.tog-no:not(.active):hover{background:var(--rbg);border-color:var(--red);color:var(--rtext)}
+.notes-wrap{margin-top:1.25rem}
+.notes-wrap label{font-size:13px;font-weight:500;color:var(--t2);display:block;margin-bottom:6px}
+textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--text);resize:vertical;min-height:72px;outline:none}
+textarea:focus{border-color:#888}
+.submit-btn{width:100%;margin-top:1.5rem;padding:15px;font-size:16px;font-weight:600;font-family:'DM Sans',sans-serif;background:var(--text);color:#fff;border:none;border-radius:var(--r);cursor:pointer;transition:opacity .15s;letter-spacing:-.2px}
+.submit-btn:hover{opacity:.85}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed}
+.progress{margin-bottom:1.25rem;background:var(--border);border-radius:20px;height:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:20px;background:var(--green);transition:width .3s}
+.progress-label{font-size:12px;color:var(--t2);text-align:center;margin-top:6px}
+/* Thank you screen */
+.thankyou{display:none;text-align:center;padding:3rem 1.5rem}
+.ty-icon{font-size:56px;margin-bottom:1rem}
+.ty-title{font-size:22px;font-weight:600;margin-bottom:.5rem}
+.ty-sub{font-size:14px;color:var(--t2);line-height:1.6}
+.ty-recap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-top:1.5rem;text-align:left}
+.ty-recap-title{font-size:12px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.ty-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.ty-row:last-child{border-bottom:none}
+.ty-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.ty-yes{background:var(--gbg);color:var(--gtext)}.ty-no{background:var(--rbg);color:var(--rtext)}
+/* Error / loading states */
+.error-screen,.loading-screen{text-align:center;padding:3rem 1.5rem}
+.error-icon{font-size:48px;margin-bottom:1rem}
+.error-title{font-size:18px;font-weight:600;margin-bottom:.5rem}
+.error-sub{font-size:14px;color:var(--t2);line-height:1.6}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.league-badge{display:inline-block;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;margin-top:8px}
+.b18{background:var(--bbg);color:var(--blue)}.b40{background:var(--gbg);color:var(--green)}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-logo">🎾</div>
+  <div class="hero-title">Wolfpack NJTC 3.0</div>
+  <div class="hero-sub">Season Availability Survey</div>
+</div>
+
+<div class="container">
+  <!-- Loading -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="spinner"></div>
+    <div style="font-size:14px;color:var(--t2)">Loading your survey...</div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-screen" class="error-screen" style="display:none">
+    <div class="error-icon">😕</div>
+    <div class="error-title">Survey not found</div>
+    <div class="error-sub">This link may be invalid or expired. Please contact your captain for a new link.</div>
+  </div>
+
+  <!-- Survey -->
+  <div id="survey-screen" style="display:none">
+    <div class="greeting" id="greeting"></div>
+    <div class="instructions" id="instructions"></div>
+    <div class="progress">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progress-label">0 of 0 answered</div>
+    <div id="dates-list"></div>
+    <div class="notes-wrap">
+      <label>Any notes for your captain? (optional)</label>
+      <textarea id="notes-input" placeholder="e.g. I may be late on May 4, or I can play in a pinch on dates I marked unavailable..."></textarea>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitSurvey()">Submit Availability</button>
+  </div>
+
+  <!-- Thank you -->
+  <div id="thankyou-screen" class="thankyou">
+    <div class="ty-icon">✅</div>
+    <div class="ty-title">You're all set!</div>
+    <div class="ty-sub" id="ty-sub"></div>
+    <div class="ty-recap" id="ty-recap"></div>
+  </div>
+</div>
+
+<script>
+// ── Parse URL params ────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const playerName = decodeURIComponent(params.get('player') || '');
+const playerEmail = decodeURIComponent(params.get('email') || '');
+const league = params.get('league') || '18over';
+const season = decodeURIComponent(params.get('season') || '');
+const datesParam = params.get('dates') || '';
+const scriptUrl = decodeURIComponent(params.get('script') || '');
+
+// ── State ────────────────────────────────────────────────────────
+const dates = datesParam ? datesParam.split(',').filter(Boolean) : [];
+const responses = {}; // date -> true/false
+
+// ── Init ─────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (!playerName || !dates.length) {
+      show('error-screen');
+      return;
+    }
+    initSurvey();
+  }, 600);
+});
+
+function show(id) {
+  ['loading-screen','error-screen','survey-screen','thankyou-screen'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function initSurvey() {
+  const first = playerName.split(' ')[0];
+  const leagueLabel = league === '18over' ? '18 & Over' : '40 & Over';
+
+  document.getElementById('greeting').textContent = `Hi ${first}! 👋`;
+  document.getElementById('instructions').innerHTML =
+    `Tap <strong>✓ Yes</strong> or <strong>✗ No</strong> for each ${leagueLabel} match date below.<br>
+    <span class="league-badge ${league === '18over' ? 'b18' : 'b40'}">${leagueLabel}${season ? ' · ' + season : ''}</span>`;
+
+  const list = document.getElementById('dates-list');
+  list.innerHTML = '';
+
+  dates.forEach(d => {
+    const dt = new Date(d + 'T12:00:00');
+    const dayName = dt.toLocaleDateString('en-US', { weekday: 'long' });
+    const dateStr = dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+    const card = document.createElement('div');
+    card.className = 'date-card';
+    card.id = 'card-' + d;
+    card.innerHTML = `
+      <div class="date-info">
+        <div class="date-main">${dateStr}</div>
+        <div class="date-sub">${dayName}</div>
+      </div>
+      <div class="toggle-wrap">
+        <button class="tog tog-yes" onclick="setAvail('${d}', true)" id="yes-${d}">✓ Yes</button>
+        <button class="tog tog-no" onclick="setAvail('${d}', false)" id="no-${d}">✗ No</button>
+      </div>`;
+    list.appendChild(card);
+  });
+
+  updateProgress();
+  show('survey-screen');
+}
+
+function setAvail(date, available) {
+  responses[date] = available;
+  const card = document.getElementById('card-' + date);
+  const yes = document.getElementById('yes-' + date);
+  const no = document.getElementById('no-' + date);
+  card.className = 'date-card ' + (available ? 'selected-yes' : 'selected-no');
+  yes.className = 'tog tog-yes' + (available ? ' active' : '');
+  no.className = 'tog tog-no' + (available ? '' : ' active');
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = Object.keys(responses).length;
+  const total = dates.length;
+  const pct = total ? Math.round((answered / total) * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${answered} of ${total} dates answered`;
+  document.getElementById('submit-btn').disabled = answered < total;
+}
+
+async function submitSurvey() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  const notes = document.getElementById('notes-input').value.trim();
+  const payload = {
+    player: playerName,
+    email: playerEmail,
+    league,
+    season,
+    submittedAt: new Date().toISOString(),
+    notes,
+    availability: responses
+  };
+
+  // Try to submit to Google Apps Script
+  let submitted = false;
+  if (scriptUrl) {
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      submitted = true;
+    } catch (e) {
+      console.error('Submit error:', e);
+    }
+  }
+
+  showThankyou(payload, submitted);
+}
+
+function showThankyou(payload, submitted) {
+  const first = playerName.split(' ')[0];
+  const yesCount = Object.values(payload.availability).filter(Boolean).length;
+  const noCount = Object.values(payload.availability).length - yesCount;
+
+  document.getElementById('ty-sub').innerHTML =
+    `Thanks ${first}! Your availability has been recorded.<br>
+    <strong>${yesCount} available</strong> · <strong>${noCount} unavailable</strong><br>
+    ${submitted ? '✅ Sent to your captain.' : '⚠️ Offline — show this screen to your captain.'}`;
+
+  // Build recap
+  const recap = document.getElementById('ty-recap');
+  recap.innerHTML = '<div class="ty-recap-title">Your responses</div>' +
+    Object.entries(payload.availability).map(([d, av]) => {
+      const dt = new Date(d + 'T12:00:00');
+      const label = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+      return `<div class="ty-row">
+        <span>${label}</span>
+        <span class="ty-badge ${av ? 'ty-yes' : 'ty-no'}">${av ? '✓ Available' : '✗ Unavailable'}</span>
+      </div>`;
+    }).join('') +
+    (payload.notes ? `<div style="margin-top:10px;font-size:12px;color:var(--t2);font-style:italic">"${payload.notes}"</div>` : '');
+
+  show('thankyou-screen');
+}
+</script>
+</body>
+</html>
