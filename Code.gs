@@ -19,15 +19,48 @@ const LOG_SHEET  = 'Log';
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
+
+    // ── Route by action ──
+    if (data.action === 'sendEmails') {
+      const results = sendEmails(data.emails || []);
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', results }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Default: save a survey response
     saveResponse(data);
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'ok' }))
       .setMimeType(ContentService.MimeType.JSON);
+
   } catch (err) {
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// ── Send survey emails directly from Apps Script ──────────────
+// Called by the captain dashboard. Sends one email per player
+// using the Gmail account that owns this Apps Script.
+function sendEmails(emails) {
+  const results = [];
+  emails.forEach(em => {
+    try {
+      GmailApp.sendEmail(
+        em.to,
+        em.subject,
+        em.body   // plain text fallback
+      );
+      logEntry(`Email sent to ${em.to}`);
+      results.push({ to: em.to, status: 'sent' });
+    } catch (err) {
+      logEntry(`Email FAILED to ${em.to}: ${err.message}`);
+      results.push({ to: em.to, status: 'error', message: err.message });
+    }
+  });
+  return results;
 }
 
 function doGet(e) {
