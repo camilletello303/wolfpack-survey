@@ -64,21 +64,48 @@ function sendEmails(emails) {
 }
 
 function doGet(e) {
-  // Allow the captain dashboard to READ all responses
+  // Set CORS headers by returning with ContentService (handled automatically)
   try {
     const action = e.parameter.action || 'read';
+
     if (action === 'read') {
       const data = readResponses();
       return ContentService
         .createTextOutput(JSON.stringify({ status: 'ok', data }))
         .setMimeType(ContentService.MimeType.JSON);
     }
+
     if (action === 'clear') {
       clearResponses();
       return ContentService
         .createTextOutput(JSON.stringify({ status: 'ok', message: 'Cleared' }))
         .setMimeType(ContentService.MimeType.JSON);
     }
+
+    // ── Send emails via GET (avoids CORS issues with POST) ──
+    // Emails are passed as a JSON-encoded URL parameter
+    if (action === 'sendEmails') {
+      const emailsJson = e.parameter.emails || '[]';
+      const emails = JSON.parse(emailsJson);
+      const results = sendEmails(emails);
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', results }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // ── Send a single test email ──
+    if (action === 'sendTest') {
+      const to      = e.parameter.to || '';
+      const subject = decodeURIComponent(e.parameter.subject || '');
+      const body    = decodeURIComponent(e.parameter.body || '');
+      if (!to) throw new Error('Missing "to" parameter');
+      GmailApp.sendEmail(to, subject, body);
+      logEntry(`Test email sent to ${to}`);
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', message: `Email sent to ${to}` }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
   } catch (err) {
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
